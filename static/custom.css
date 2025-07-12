@@ -1,0 +1,47 @@
+body {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f3f0ff 100%);
+  min-height: 100vh;
+}
+.bg-gradient-swap {
+  background: linear-gradient(90deg, #7f5af0 0%, #2cb67d 100%) !important;
+}
+.navbar-brand {
+  font-weight: bold;
+  letter-spacing: 1px;
+  font-size: 1.35rem;
+}
+.card {
+  margin-bottom: 1.5rem;
+  border-radius: 1.1rem;
+  border: none;
+}
+.btn-primary, .navbar, .bg-primary {
+  background-color: #7f5af0 !important;
+  border: none;
+}
+.btn-outline-primary {
+  color: #7f5af0;
+  border-color: #7f5af0;
+}
+.btn-outline-primary:hover {
+  background: #7f5af0;
+  color: #fff;
+}
+footer.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+input[type="text"], input[type="password"], input[type="number"] {
+  border-radius: 6px !important;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #7f5af0 0%, #2cb67d 100%);
+  border-radius: 6px;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  background: #f3f0ff;
+}

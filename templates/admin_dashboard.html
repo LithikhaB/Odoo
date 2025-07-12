@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard | Skill Swap{% endblock %}
+{% block content %}
+<h2 class="mb-4">Admin Dashboard</h2>
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title">Review Skills</h5>
+        <p class="card-text">Approve or reject inappropriate skill descriptions.</p>
+        <a href="{{ url_for('review_skills') }}" class="btn btn-primary mt-auto">Review Skills</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title">Monitor Swaps</h5>
+        <p class="card-text">View all pending, accepted, or cancelled swaps.</p>
+        <a href="{{ url_for('monitor_swaps') }}" class="btn btn-primary mt-auto">Monitor Swaps</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title">Ban Users</h5>
+        <p class="card-text">Ban users who violate platform policies.</p>
+        <a href="{{ url_for('ban_users') }}" class="btn btn-primary mt-auto">Ban Users</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title">Send Platform Message</h5>
+        <p class="card-text">Send feature updates or downtime alerts to all users.</p>
+        <a href="{{ url_for('send_message') }}" class="btn btn-primary mt-auto">Send Message</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <h5 class="card-title">Download Reports</h5>
+        <p class="card-text">Download user activity, feedback logs, and swap stats.</p>
+        <a href="{{ url_for('download_reports') }}" class="btn btn-primary mt-auto">Download Reports</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

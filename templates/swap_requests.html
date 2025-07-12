@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Swap Requests | Skill Swap{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">My Swap Requests</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>To</th><th>Skill Offered</th><th>Skill Wanted</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+          {% for req in requests %}
+            <tr>
+              <td>
+                {% if req.to_user.photo %}
+                  <img src="{{ req.to_user.photo }}" class="rounded-circle me-1" style="width:28px;height:28px;object-fit:cover;vertical-align:middle;" alt="Profile Photo">
+                {% else %}
+                  <span class="me-1" style="vertical-align:middle;">
+                    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="14" cy="14" r="14" fill="#{{ req.to_user.avatar_color }}"/>
+                      <text x="50%" y="60%" text-anchor="middle" fill="#fff" font-size="12" font-family="Arial, sans-serif" dy=".3em">{{ req.to_user.name[0:2]|upper }}</text>
+                    </svg>
+                  </span>
+                {% endif %}
+                {{ req.to_user.name }}
+              </td>
+              <td>{{ req.skill_offered }}</td>
+              <td>{{ req.skill_wanted }}</td>
+              <td><span class="badge bg-{{ 'secondary' if req.status=='pending' else ('success' if req.status=='accepted' else ('danger' if req.status=='rejected' else 'warning')) }}">{{ req.status|capitalize }}</span></td>
+              <td>
+                {% if req.status == 'pending' %}
+                  <a href="{{ url_for('delete_swap', swap_id=req.id) }}" class="btn btn-sm btn-outline-danger">Delete</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">Swap Offers Received</div>
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead><tr><th>From</th><th>Skill Offered</th><th>Skill Wanted</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+          {% for req in received %}
+            <tr>
+              <td>
+                {% if req.from_user.photo %}
+                  <img src="{{ req.from_user.photo }}" class="rounded-circle me-1" style="width:28px;height:28px;object-fit:cover;vertical-align:middle;" alt="Profile Photo">
+                {% else %}
+                  <span class="me-1" style="vertical-align:middle;">
+                    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="14" cy="14" r="14" fill="#{{ req.from_user.avatar_color }}"/>
+                      <text x="50%" y="60%" text-anchor="middle" fill="#fff" font-size="12" font-family="Arial, sans-serif" dy=".3em">{{ req.from_user.name[0:2]|upper }}</text>
+                    </svg>
+                  </span>
+                {% endif %}
+                {{ req.from_user.name }}
+              </td>
+              <td>{{ req.skill_offered }}</td>
+              <td>{{ req.skill_wanted }}</td>
+              <td><span class="badge bg-{{ 'secondary' if req.status=='pending' else ('success' if req.status=='accepted' else ('danger' if req.status=='rejected' else 'warning')) }}">{{ req.status|capitalize }}</span></td>
+              <td>
+                {% if req.status == 'pending' %}
+                  <a href="{{ url_for('accept_swap', swap_id=req.id) }}" class="btn btn-sm btn-success me-1">Accept</a>
+                  <a href="{{ url_for('reject_swap', swap_id=req.id) }}" class="btn btn-sm btn-danger">Reject</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

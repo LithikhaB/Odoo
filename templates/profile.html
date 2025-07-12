@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}My Profile | Skill Swap{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-8 col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-center">My Profile</h3>
+        <form method="POST">
+          <div class="row">
+            <div class="col-md-4 text-center mb-3">
+              {% if user.photo %}
+                <img src="{{ user.photo }}" class="rounded-circle img-thumbnail" style="max-width:120px;" alt="Profile Photo">
+              {% else %}
+                <span>
+                  <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="60" cy="60" r="60" fill="#{{ user.avatar_color }}"/>
+                    <text x="50%" y="56%" text-anchor="middle" fill="#fff" font-size="48" font-family="Arial, sans-serif" dy=".3em">{{ user.name[0:2]|upper }}</text>
+                  </svg>
+                </span>
+              {% endif %}
+            </div>
+            <div class="col-md-8">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="name" value="{{ user.name }}" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" class="form-control" name="location" value="{{ user.location }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Profile Photo URL</label>
+                <input type="text" class="form-control" name="photo" value="{{ user.photo }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Skills Offered <small>(comma separated)</small></label>
+                <input type="text" class="form-control" name="skills_offered" value="{{ user.skills_offered }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Skills Wanted <small>(comma separated)</small></label>
+                <input type="text" class="form-control" name="skills_wanted" value="{{ user.skills_wanted }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Availability</label>
+                <input type="text" class="form-control" name="availability" value="{{ user.availability }}">
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="is_public" id="is_public" {% if user.is_public %}checked{% endif %}>
+                <label class="form-check-label" for="is_public">Make profile public?</label>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Update</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

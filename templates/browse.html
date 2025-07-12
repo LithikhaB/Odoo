@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Browse Skills | Skill Swap{% endblock %}
+{% block content %}
+<h2 class="mb-4">Browse or Search Skills</h2>
+<form method="GET" class="mb-4">
+  <div class="input-group">
+    <input type="text" class="form-control" name="q" placeholder="Search skills..." value="{{ request.args.get('q', '') }}">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </div>
+</form>
+<div class="row">
+{% for user in users %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          {% if user.photo %}
+            <img src="{{ user.photo }}" class="rounded-circle me-3" style="width:48px;height:48px;object-fit:cover;" alt="Profile Photo">
+          {% else %}
+            <span class="me-3">
+              <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="24" cy="24" r="24" fill="#{{ user.avatar_color }}"/>
+                <text x="50%" y="56%" text-anchor="middle" fill="#fff" font-size="20" font-family="Arial, sans-serif" dy=".3em">{{ user.name[0:2]|upper }}</text>
+              </svg>
+            </span>
+          {% endif %}
+          <div>
+            <b>{{ user.name }}</b>
+            <div class="text-muted small">{{ user.location or 'N/A' }}</div>
+          </div>
+        </div>
+        <div><span class="fw-semibold">Skills Offered:</span> {{ user.skills_offered }}</div>
+        <div><span class="fw-semibold">Skills Wanted:</span> {{ user.skills_wanted }}</div>
+        <div><span class="fw-semibold">Availability:</span> {{ user.availability }}</div>
+        {% set status = user_statuses[user.id] %}
+        {% if status == 'none' %}
+          <a href="{{ url_for('request_swap', user_id=user.id) }}" class="btn btn-outline-primary btn-sm mt-3">Request Swap</a>
+        {% elif status == 'requested' %}
+          <button class="btn btn-secondary btn-sm mt-3" disabled>Requested</button>
+        {% elif status == 'done' %}
+          <button class="btn btn-success btn-sm mt-3" disabled>Done</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+<!-- Pagination Controls -->
+{% if pagination.pages > 1 %}
+<nav aria-label="User pagination">
+  <ul class="pagination justify-content-center mt-4">
+    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="?q={{ q }}&page={{ pagination.prev_num }}&per_page={{ pagination.per_page }}" tabindex="-1">Previous</a>
+    </li>
+    {% for p in range(1, pagination.pages + 1) %}
+      <li class="page-item {% if pagination.page == p %}active{% endif %}">
+        <a class="page-link" href="?q={{ q }}&page={{ p }}&per_page={{ pagination.per_page }}">{{ p }}</a>
+      </li>
+    {% endfor %}
+    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+      <a class="page-link" href="?q={{ q }}&page={{ pagination.next_num }}&per_page={{ pagination.per_page }}">Next</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+{% if not users %}
+  <div class="alert alert-warning">No users found for your search.</div>
+{% endif %}
+{% endblock %}

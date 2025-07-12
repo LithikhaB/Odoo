@@ -1,0 +1,11 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="18" cy="18" r="18" fill="url(#swapGradient)"/>
+  <path d="M12 18h12M24 18l-4-4M24 18l-4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 18H12M12 18l4-4M12 18l4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/>
+  <defs>
+    <linearGradient id="swapGradient" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7f5af0"/>
+      <stop offset="1" stop-color="#2cb67d"/>
+    </linearGradient>
+  </defs>
+</svg>
