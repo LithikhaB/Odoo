@@ -26,17 +26,33 @@
                     <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action active">
                         Dashboard
                     </a>
-                    <a href="{{ url_for('review_skills') }}" class="list-group-item list-group-item-action">
-                        Review Skills
+                    <a href="{{ url_for('admin_review_skills') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Review Skills</h6>
+                            <small class="text-muted">Review user skills</small>
+                        </div>
+                        <small class="text-muted">Manage and moderate user skills</small>
                     </a>
-                    <a href="{{ url_for('monitor_swaps') }}" class="list-group-item list-group-item-action">
-                        Monitor Swaps
+                    <a href="{{ url_for('admin_monitor_swaps') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Monitor Swaps</h6>
+                            <small class="text-muted">{{ recent_swaps|length }} recent swaps</small>
+                        </div>
+                        <small class="text-muted">View and manage swap requests</small>
                     </a>
-                    <a href="{{ url_for('send_message') }}" class="list-group-item list-group-item-action">
-                        Send Message
+                    <a href="{{ url_for('admin_send_message') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Send Message</h6>
+                            <small class="text-muted">{{ messages|length }} recent messages</small>
+                        </div>
+                        <small class="text-muted">Send platform-wide announcements</small>
                     </a>
-                    <a href="{{ url_for('download_reports') }}" class="list-group-item list-group-item-action">
-                        Download Reports
+                    <a href="{{ url_for('admin_download_reports') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Download Reports</h6>
+                            <small class="text-muted">{{ total_users }} users</small>
+                        </div>
+                        <small class="text-muted">Generate and download reports</small>
                     </a>
                 </div>
             </div>
@@ -55,13 +71,21 @@
                 <div class="col-md-3 mb-4">
                     <div class="card text-white bg-success">
                         <div class="card-body">
+                            <h5 class="card-title">Active Users</h5>
+                            <p class="card-text display-6">{{ active_users }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
                             <h5 class="card-title">Total Swaps</h5>
                             <p class="card-text display-6">{{ total_swaps }}</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-4">
-                    <div class="card text-white bg-info">
+                    <div class="card text-white bg-warning">
                         <div class="card-body">
                             <h5 class="card-title">Total Feedback</h5>
                             <p class="card-text display-6">{{ total_feedback }}</p>
@@ -71,41 +95,100 @@
             </div>
 
             <div class="row">
-                <div class="col-12">
+                <div class="col-md-6 mb-4">
                     <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">Recent Activities</h5>
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Messages</h5>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Type</th>
-                                            <th>Details</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for activity in recent_activities %}
-                                        <tr>
-                                            <td>
-                                                <span class="badge bg-{{ 'primary' if activity.type == 'swap' else 'secondary' }}">
-                                                    {{ activity.type }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {% if activity.type == 'swap' %}
-                                                    {{ activity.from_user }} swapped with {{ activity.to_user }}
-                                                {% else %}
-                                                    {{ activity.sender }}: {{ activity.content }}
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            {% if messages %}
+                            <ul class="list-group list-group-flush">
+                                {% for message in messages %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-1">{{ message.message }}</p>
+                                            <small class="text-muted">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">No recent messages.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Recent Swaps</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_swaps %}
+                            <ul class="list-group list-group-flush">
+                                {% for swap in recent_swaps %}
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <p class="mb-1">
+                                                <strong>{{ swap.from_user.name }}</strong> → <strong>{{ swap.to_user.name }}</strong>
+                                            </p>
+                                            <small class="text-muted">{{ swap.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                        </div>
+                                        <span class="badge bg-{{ 'success' if swap.status == 'accepted' else 'danger' if swap.status == 'rejected' else 'warning' }}">
+                                            {{ swap.status.title() }}
+                                        </span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">No recent swaps.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Navigation</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <a href="{{ url_for('admin_review_skills') }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Review Skills</h6>
+                                        <small class="text-muted">{{ total_users }} users</small>
+                                    </div>
+                                    <small class="text-muted">Manage and moderate user skills</small>
+                                </a>
+                                <a href="{{ url_for('admin_monitor_swaps') }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Monitor Swaps</h6>
+                                        <small class="text-muted">{{ total_swaps }} total swaps</small>
+                                    </div>
+                                    <small class="text-muted">View and manage swap requests</small>
+                                </a>
+                                <a href="{{ url_for('admin_send_message') }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Send Message</h6>
+                                        <small class="text-muted">{{ total_feedback }} feedback</small>
+                                    </div>
+                                    <small class="text-muted">Send platform-wide announcements</small>
+                                </a>
+                                <a href="{{ url_for('admin_download_reports') }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Download Reports</h6>
+                                        <small class="text-muted">{{ total_users }} users</small>
+                                    </div>
+                                    <small class="text-muted">Generate and download reports</small>
+                                </a>
                             </div>
                         </div>
                     </div>

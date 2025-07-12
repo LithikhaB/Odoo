@@ -354,26 +354,90 @@ def admin_dashboard():
     # Get recent swaps
     recent_swaps = SwapRequest.query.order_by(SwapRequest.created_at.desc()).limit(5).all()
     
-    # Get user statistics
+    # Get total counts
     total_users = User.query.count()
     active_users = User.query.filter_by(is_public=True).count()
+    total_swaps = SwapRequest.query.count()
+    total_feedback = Feedback.query.count()
     
     return render_template('admin/dashboard.html', 
         messages=messages,
         recent_swaps=recent_swaps,
         total_users=total_users,
-        active_users=active_users)
+        active_users=active_users,
+        total_swaps=total_swaps,
+        total_feedback=total_feedback)
 
 @app.route('/admin/review_skills')
 @login_required
-def review_skills():
+def admin_review_skills():
     if not current_user.is_admin:
-        flash('Access denied. Admin privileges required.')
-        return redirect(url_for('home'))
+        abort(403)
     
     # Get all users with their skills
     users = User.query.all()
-    return render_template('admin/review_skills.html', users=users)
+    skills_to_review = []
+    
+    for user in users:
+        if user.is_public:  # Only review public profiles
+            skills = {
+                'offered': user.skills_offered.split(',') if user.skills_offered else [],
+                'wanted': user.skills_wanted.split(',') if user.skills_wanted else []
+            }
+            
+            # Check for potential issues
+            issues = []
+            if skills['offered']:
+                for skill in skills['offered']:
+                    if skill.lower() in ['admin', 'administrator', 'moderator', 'support']:
+                        issues.append(f"Suspicious skill: {skill}")
+                    if len(skill) < 3:  # Too short
+                        issues.append(f"Skill too short: {skill}")
+                    if len(skill) > 50:  # Too long
+                        issues.append(f"Skill too long: {skill}")
+            
+            if skills['wanted']:
+                for skill in skills['wanted']:
+                    if skill.lower() in ['admin', 'administrator', 'moderator', 'support']:
+                        issues.append(f"Suspicious skill: {skill}")
+                    if len(skill) < 3:
+                        issues.append(f"Skill too short: {skill}")
+                    if len(skill) > 50:
+                        issues.append(f"Skill too long: {skill}")
+            
+            skills_to_review.append({
+                'user': user,
+                'skills': skills,
+                'issues': issues,
+                'has_issues': len(issues) > 0
+            })
+    
+    return render_template('admin/review_skills.html', 
+                         users=skills_to_review)
+
+@app.route('/admin/approve_skill/<int:user_id>', methods=['POST'])
+@login_required
+def admin_approve_skill(user_id):
+    if not current_user.is_admin:
+        abort(403)
+    
+    user = User.query.get_or_404(user_id)
+    user.is_public = True
+    db.session.commit()
+    flash('Skills approved successfully.', 'success')
+    return redirect(url_for('admin_review_skills'))
+
+@app.route('/admin/reject_skill/<int:user_id>', methods=['POST'])
+@login_required
+def admin_reject_skill(user_id):
+    if not current_user.is_admin:
+        abort(403)
+    
+    user = User.query.get_or_404(user_id)
+    user.is_public = False
+    db.session.commit()
+    flash('Skills rejected successfully.', 'danger')
+    return redirect(url_for('admin_review_skills'))
 
 @app.route('/admin/ban_user/<int:user_id>')
 @login_required
@@ -399,11 +463,11 @@ def unban_user(user_id):
     user.banned = False
     db.session.commit()
     flash(f'User {user.name} has been unbanned.')
-    return redirect(url_for('review_skills'))
+    return redirect(url_for('admin_review_skills'))
 
 @app.route('/admin/monitor_swaps')
 @login_required
-def monitor_swaps():
+def admin_monitor_swaps():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -426,7 +490,7 @@ def monitor_swaps():
 
 @app.route('/admin/send_message', methods=['GET', 'POST'])
 @login_required
-def send_message():
+def admin_send_message():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -435,7 +499,7 @@ def send_message():
         message = request.form.get('message')
         if not message:
             flash('Please enter a message.')
-            return redirect(url_for('send_message'))
+            return redirect(url_for('admin_send_message'))
             
         # Create admin message
         admin_msg = AdminMessage(message=message)
@@ -448,7 +512,7 @@ def send_message():
 
 @app.route('/admin/view_messages')
 @login_required
-def view_messages():
+def admin_view_messages():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -459,7 +523,7 @@ def view_messages():
 
 @app.route('/admin/download_reports')
 @login_required
-def download_reports():
+def admin_download_reports():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -587,7 +651,7 @@ def admin_users():
 
 @app.route('/admin/add_admin', methods=['GET', 'POST'])
 @login_required
-def add_admin():
+def admin_add_admin():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -600,15 +664,15 @@ def add_admin():
         
         if not all([name, email, password, confirm_password]):
             flash('Please fill in all fields.')
-            return redirect(url_for('add_admin'))
+            return redirect(url_for('admin_add_admin'))
             
         if password != confirm_password:
             flash('Passwords do not match.')
-            return redirect(url_for('add_admin'))
+            return redirect(url_for('admin_add_admin'))
             
         if User.query.filter_by(email=email).first():
             flash('Email already exists.')
-            return redirect(url_for('add_admin'))
+            return redirect(url_for('admin_add_admin'))
             
         new_admin = User(
             name=name,
@@ -626,7 +690,7 @@ def add_admin():
 
 @app.route('/admin/change_password', methods=['GET', 'POST'])
 @login_required
-def change_admin_password():
+def admin_change_password():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
@@ -638,11 +702,11 @@ def change_admin_password():
         
         if not current_user.check_password(current_password):
             flash('Current password is incorrect.')
-            return redirect(url_for('change_admin_password'))
+            return redirect(url_for('admin_change_password'))
             
         if new_password != confirm_password:
             flash('New passwords do not match.')
-            return redirect(url_for('change_admin_password'))
+            return redirect(url_for('admin_change_password'))
             
         current_user.set_password(new_password)
         db.session.commit()
