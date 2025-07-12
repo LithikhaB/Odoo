@@ -11,6 +11,14 @@ A simple mini application that enables users to list their skills and request ot
 - Leave feedback after swaps
 - Admin dashboard for moderation, banning, messaging, and reports
 
+
+## Team Name: Team Hackslayers
+## Team Members:
+- Lithikha.B: lithikhab@gmail.com
+- Nittin Balajee: nittinbalajee@gmail.com
+- Varsha Pillai M: mvarshapillai@gmail.com
+- Vikranth V: vikranthv597@gmail.com
+  
 ## Setup
 1. Install dependencies:
    ```bash
