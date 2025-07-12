@@ -1,105 +1,167 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Welcome | Skill Swap{% endblock %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title">Welcome to Skill Swap Platform</h2>
-                <p class="card-text mb-4">
-                    Connect with other users to exchange skills and knowledge.
-                    Find someone who can teach you what you want to learn!
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-{% if current_user.is_authenticated %}
-<div class="row mb-4">
-    <div class="col-12">
-        {% if messages %}
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Platform Messages</h5>
-            </div>
-            <div class="card-body">
-                {% for message in messages %}
-                <div class="alert alert-light border mb-2">
-                    <p class="mb-1">{{ message.message }}</p>
-                    <small class="text-muted">
-                        <i class="fas fa-user-tie me-1"></i>Admin &middot; 
-                        <i class="fas fa-clock me-1"></i>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
-                    </small>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Your Skills</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6 class="card-subtitle mb-2 text-muted">Skills you can offer:</h6>
-                        <p class="card-text">{{ current_user.skills_offered }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="card-subtitle mb-2 text-muted">Skills you want to learn:</h6>
-                        <p class="card-text">{{ current_user.skills_wanted }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="hero-section text-center py-5">
+                <h1 class="display-4 mb-3" style="color: white; font-weight: 700;">Welcome to Skill Swap</h1>
+                <p class="lead mb-4" style="color: rgba(255,255,255,0.9); font-weight: 500;">Connect with others to share and learn new skills</p>
+                {% if current_user.is_authenticated %}
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                    <a href="{{ url_for('browse') }}" class="btn btn-primary me-md-2">
-                        <i class="fas fa-search me-2"></i>Browse Users
+                    <a href="{{ url_for('browse') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-search me-2"></i>Browse Skills
                     </a>
-                    <a href="{{ url_for('profile') }}" class="btn btn-secondary">
-                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="fas fa-user me-2"></i>My Profile
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% else %}
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Get Started</h5>
-            </div>
-            <div class="card-body">
-                <p class="lead mb-4">Join our skill swap community today!</p>
+                {% else %}
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                    <a href="{{ url_for('register') }}" class="btn btn-primary me-md-2">
-                        <i class="fas fa-user-plus me-2"></i>Register
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        <i class="fas fa-user-plus me-2"></i>Join Now
                     </a>
-                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">
                         <i class="fas fa-sign-in-alt me-2"></i>Login
                     </a>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Admin Messages -->
+    {% if messages %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0" style="font-weight: 600;">Platform Announcements</h5>
+                </div>
+                <div class="card-body">
+                    {% for message in messages %}
+                    <div class="alert alert-info mb-3" role="alert">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1" style="font-weight: 500;">{{ message.message }}</h6>
+                                <small class="text-muted">{{ message.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Skills Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="mb-4" style="color: var(--dark-color); font-weight: 700;">Your Skills</h2>
+            <div class="row">
+                <!-- Skills Offered -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0" style="font-weight: 600;">Skills You Can Offer</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.skills_offered %}
+                            <div class="skill-tags">
+                                {% for skill in current_user.skills_offered.split(',') %}
+                                <span class="badge bg-success text-white me-1 mb-2">
+                                    {{ skill.strip() }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">You haven't added any skills yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Wanted -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0" style="font-weight: 600;">Skills You Want to Learn</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.skills_wanted %}
+                            <div class="skill-tags">
+                                {% for skill in current_user.skills_wanted.split(',') %}
+                                <span class="badge bg-info text-white me-1 mb-2">
+                                    {{ skill.strip() }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">You haven't added any skills you want to learn yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 1rem;
+            padding: 3rem 1rem;
+            color: white;
+        }
+
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .skill-tags .badge {
+            padding: 0.5em 1em;
+            font-size: 0.9rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s;
+            font-weight: 500;
+        }
+
+        .skill-tags .badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+
+            .skill-tags {
+                justify-content: center;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
 </div>
-{% endif %}
 {% endblock %}

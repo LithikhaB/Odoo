@@ -18,10 +18,36 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <form class="d-flex" method="GET" action="{{ url_for('admin_monitor_swaps') }}">
+                                <input class="form-control me-2" type="search" name="search" placeholder="Search by user name..." value="{{ request.args.get('search', '') }}">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="fas fa-search me-1"></i>Search
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-end">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                                        Filter Status
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_monitor_swaps', status='all') }}">All</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_monitor_swaps', status='pending') }}">Pending</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_monitor_swaps', status='accepted') }}">Accepted</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin_monitor_swaps', status='rejected') }}">Rejected</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -36,13 +62,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for swap, from_user_name, to_user_name in swaps %}
+                                {% for swap in swap_requests.items %}
                                 <tr>
-                                    <td>{{ from_user_name }}</td>
-                                    <td>{{ to_user_name }}</td>
+                                    <td>{{ swap.from_user.name }}</td>
+                                    <td>{{ swap.to_user.name }}</td>
                                     <td>
-                                        <p class="mb-1">Offering: {{ swap.skill_offered }}</p>
-                                        <p class="mb-0">Wants: {{ swap.skill_wanted }}</p>
+                                        <p class="mb-1">Offering: {{ swap.from_user.skills_offered }}</p>
+                                        <p class="mb-0">Wants: {{ swap.to_user.skills_wanted }}</p>
                                     </td>
                                     <td>
                                         <span class="badge {% if swap.status == 'accepted' %}bg-success{% elif swap.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
@@ -64,10 +90,66 @@
                                         {% endif %}
                                     </td>
                                 </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                                        <p class="mb-0">No swap requests found</p>
+                                    </td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    {% if swap_requests.pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if swap_requests.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_monitor_swaps', page=swap_requests.prev_num, search=request.args.get('search', ''), status=request.args.get('status', 'all')) }}">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+
+                            {% for page in swap_requests.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page %}
+                            <li class="page-item {% if swap_requests.page == page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('admin_monitor_swaps', page=page, search=request.args.get('search', ''), status=request.args.get('status', 'all')) }}">
+                                    {{ page }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if swap_requests.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_monitor_swaps', page=swap_requests.next_num, search=request.args.get('search', ''), status=request.args.get('status', 'all')) }}">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">
+                                    <i class="fas fa-chevron-right"></i>
+                                </span>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>

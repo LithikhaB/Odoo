@@ -8,6 +8,7 @@ from models import db, User, SwapRequest, Feedback, AdminMessage
 from io import StringIO
 from flask import make_response
 from sqlalchemy.orm import aliased
+from sqlalchemy import or_
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -472,21 +473,33 @@ def admin_monitor_swaps():
         flash('Access denied. Admin privileges required.')
         return redirect(url_for('home'))
     
-    # Use aliases for the User table to avoid ambiguity
-    from_user = aliased(User)
-    to_user = aliased(User)
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '').strip()
+    status = request.args.get('status', 'all')
     
-    swaps = db.session.query(
-        SwapRequest,
-        from_user.name.label('from_user_name'),
-        to_user.name.label('to_user_name')
-    ).join(
-        from_user, SwapRequest.from_user_id == from_user.id
-    ).join(
-        to_user, SwapRequest.to_user_id == to_user.id
-    ).all()
+    # Build query based on filters
+    query = SwapRequest.query
     
-    return render_template('admin/monitor_swaps.html', swaps=swaps)
+    if search:
+        # Search by either from_user or to_user name
+        query = query.filter(
+            or_(
+                SwapRequest.from_user.has(User.name.ilike(f'%{search}%')),
+                SwapRequest.to_user.has(User.name.ilike(f'%{search}%'))
+            )
+        )
+    
+    if status != 'all':
+        query = query.filter_by(status=status)
+    
+    # Get paginated results
+    swap_requests = query.order_by(SwapRequest.created_at.desc())\
+        .paginate(page=page, per_page=10)
+    
+    return render_template('admin/monitor_swaps.html', 
+                         swap_requests=swap_requests,
+                         search=search,
+                         status=status)
 
 @app.route('/admin/send_message', methods=['GET', 'POST'])
 @login_required
