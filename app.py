@@ -1,24 +1,26 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, abort
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-import datetime
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from models import db, User, SwapRequest, Feedback, AdminMessage, UserMessage, init_db
 import csv
 import io
-from models import db, User, SwapRequest, Feedback, AdminMessage
 from io import StringIO
-from flask import make_response
 from sqlalchemy.orm import aliased
-from sqlalchemy import or_
+from sqlalchemy import or_, and_, func
+from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///skill_swap.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize db from models.py
+# Initialize extensions
 db.init_app(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager = LoginManager(app)
+
+# Initialize database tables
+with app.app_context():
+    init_db(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -538,61 +540,47 @@ def admin_view_messages():
 @login_required
 def admin_download_reports():
     if not current_user.is_admin:
-        flash('Access denied. Admin privileges required.')
-        return redirect(url_for('home'))
+        abort(403)
     
-    # Create CSV report
-    filename = f'skill_swap_report_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
-    
-    # Get all users and their data
+    # Get all relevant data
     users = User.query.all()
     swaps = SwapRequest.query.all()
-    feedbacks = Feedback.query.all()
+    feedback = Feedback.query.all()
     
     # Create CSV content
-    csv_content = []
-    csv_content.append(['User Report'])
-    csv_content.append(['ID', 'Name', 'Skills Offered', 'Skills Wanted', 'Banned'])
+    csv_content = """User Reports:
+Name,Email,Location,Skills Offered,Skills Wanted,Availability,Is Public,Is Admin,Banned
+"""
+    
     for user in users:
-        csv_content.append([
-            user.id,
-            user.name,
-            user.skills_offered,
-            user.skills_wanted,
-            'Yes' if user.banned else 'No'
-        ])
+        csv_content += f"{user.name},{user.email},{user.location or 'None'},"\
+                      f"{user.skills_offered or 'None'},{user.skills_wanted or 'None'},"\
+                      f"{user.availability or 'None'},{user.is_public},{user.is_admin},{user.banned}\n"
     
-    csv_content.append(['\nSwap Report'])
-    csv_content.append(['ID', 'From User', 'To User', 'Skills', 'Status', 'Created At'])
+    csv_content += "\nSwap Requests:\n"\
+                   "From User,To User,Skill Offered,Skill Wanted,Message,Status,Date\n"
+    
     for swap in swaps:
-        csv_content.append([
-            swap.id,
-            swap.from_user.name,
-            swap.to_user.name,
-            f"{swap.skill_offered} -> {swap.skill_wanted}",
-            swap.status,
-            swap.created_at.strftime('%Y-%m-%d %H:%M:%S')
-        ])
+        csv_content += f"{swap.from_user.name},{swap.to_user.name},{swap.skill_offered or 'None'},"\
+                      f"{swap.skill_wanted or 'None'},{swap.message or 'None'},"\
+                      f"{swap.status},{swap.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
     
-    csv_content.append(['\nFeedback Report'])
-    csv_content.append(['ID', 'User', 'Rating', 'Review', 'Created At'])
-    for feedback in feedbacks:
-        csv_content.append([
-            feedback.id,
-            feedback.user.name,
-            feedback.rating,
-            feedback.review,
-            feedback.created_at.strftime('%Y-%m-%d %H:%M:%S')
-        ])
+    csv_content += "\nFeedback:\n"\
+                   "User,Rating,Review,Date\n"
     
-    # Create CSV file
-    si = StringIO()
-    cw = csv.writer(si)
-    cw.writerows(csv_content)
-    output = make_response(si.getvalue())
-    output.headers["Content-Disposition"] = f"attachment; filename={filename}"
-    output.headers["Content-type"] = "text/csv"
-    return output
+    for fb in feedback:
+        csv_content += f"{fb.user.name},{fb.rating},{fb.review or 'None'},"\
+                      f"{fb.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+    
+    # Create filename with current timestamp
+    filename = f'skill_swap_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    
+    # Create response
+    response = make_response(csv_content)
+    response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    response.headers["Content-type"] = "text/csv"
+    
+    return response
 
 @app.route('/promote_to_admin/<string:username>')
 @login_required
@@ -775,6 +763,151 @@ def admin_reject_swap(swap_id):
     db.session.commit()
     
     return jsonify({'success': True})
+
+# Message Routes
+@app.route('/messages')
+@login_required
+def messages():
+    # Get all conversations using subqueries
+    sent_messages = db.session.query(UserMessage).filter_by(sender_id=current_user.id)
+    received_messages = db.session.query(UserMessage).filter_by(recipient_id=current_user.id)
+    
+    # Get users you've swapped with
+    sent_swaps = db.session.query(SwapRequest).filter_by(from_user_id=current_user.id, status='accepted')
+    received_swaps = db.session.query(SwapRequest).filter_by(to_user_id=current_user.id, status='accepted')
+    
+    # Combine both queries for messages
+    all_messages = sent_messages.union(received_messages).order_by(UserMessage.created_at.desc()).all()
+    
+    # Build conversation list
+    conversations = []
+    conversation_ids = set()
+    
+    # Add message conversations
+    for message in all_messages:
+        other_user_id = message.recipient_id if message.sender_id == current_user.id else message.sender_id
+        if other_user_id not in conversation_ids:
+            conversation_ids.add(other_user_id)
+            other_user = User.query.get(other_user_id)
+            
+            # Get all messages in this conversation
+            conversation_messages = db.session.query(UserMessage).filter(
+                ((UserMessage.sender_id == current_user.id) & (UserMessage.recipient_id == other_user_id)) |
+                ((UserMessage.sender_id == other_user_id) & (UserMessage.recipient_id == current_user.id))
+            ).order_by(UserMessage.created_at.asc()).all()
+            
+            latest_message = conversation_messages[-1] if conversation_messages else None
+            unread_count = db.session.query(UserMessage).filter(
+                UserMessage.recipient_id == current_user.id,
+                UserMessage.sender_id == other_user_id,
+                UserMessage.read == False
+            ).count()
+            
+            conversations.append({
+                'other_user': other_user,
+                'last_message': latest_message,
+                'messages': conversation_messages,
+                'unread_count': unread_count,
+                'unread': unread_count > 0,
+                'type': 'message',
+                'conversation_id': latest_message.id if latest_message else None
+            })
+
+    # Add swap partners
+    for swap in sent_swaps.union(received_swaps).all():
+        other_user_id = swap.to_user_id if swap.from_user_id == current_user.id else swap.from_user_id
+        if other_user_id not in conversation_ids:
+            conversation_ids.add(other_user_id)
+            other_user = User.query.get(other_user_id)
+            
+            # Get all messages in this conversation
+            conversation_messages = db.session.query(UserMessage).filter(
+                ((UserMessage.sender_id == current_user.id) & (UserMessage.recipient_id == other_user_id)) |
+                ((UserMessage.sender_id == other_user_id) & (UserMessage.recipient_id == current_user.id))
+            ).order_by(UserMessage.created_at.asc()).all()
+            
+            latest_message = conversation_messages[-1] if conversation_messages else None
+            unread_count = db.session.query(UserMessage).filter(
+                UserMessage.recipient_id == current_user.id,
+                UserMessage.sender_id == other_user_id,
+                UserMessage.read == False
+            ).count()
+            
+            conversations.append({
+                'other_user': other_user,
+                'last_message': latest_message,
+                'messages': conversation_messages,
+                'unread_count': unread_count,
+                'unread': unread_count > 0,
+                'type': 'swap',
+                'conversation_id': latest_message.id if latest_message else None
+            })
+
+    # Sort conversations by last message time
+    conversations.sort(key=lambda x: x['last_message'].created_at if x['last_message'] else datetime.min, reverse=True)
+
+    selected_conversation = None
+    if request.args.get('conversation_id'):
+        conversation_id = int(request.args.get('conversation_id'))
+        selected_conversation = next((c for c in conversations if c['conversation_id'] == conversation_id), None)
+        
+        # If no conversation found, try to find by user ID
+        if not selected_conversation:
+            user_id = int(request.args.get('conversation_id'))
+            selected_conversation = next((c for c in conversations if c['other_user'].id == user_id), None)
+        
+        if selected_conversation:
+            # Mark messages as read
+            if selected_conversation['last_message']:
+                UserMessage.query.filter_by(
+                    recipient_id=current_user.id,
+                    read=False,
+                    id=selected_conversation['last_message'].id
+                ).update({UserMessage.read: True})
+                db.session.commit()
+
+    return render_template('messages.html', 
+                         conversations=conversations,
+                         selected_conversation=selected_conversation)
+
+@app.route('/messages/compose/<int:recipient_id>')
+@login_required
+def compose_message(recipient_id):
+    recipient = User.query.get_or_404(recipient_id)
+    return render_template('compose_message.html', recipient=recipient)
+
+@app.route('/messages/send/<int:recipient_id>', methods=['POST'])
+@login_required
+def send_message(recipient_id):
+    content = request.form.get('content')
+    if not content:
+        flash('Message content is required')
+        return redirect(url_for('messages'))
+
+    # Create new message
+    new_message = UserMessage(
+        sender_id=current_user.id,
+        recipient_id=recipient_id,
+        content=content,
+        read=False
+    )
+    
+    db.session.add(new_message)
+    db.session.commit()
+    
+    flash('Message sent successfully')
+    return redirect(url_for('messages', conversation_id=new_message.id))
+
+# Add message count to navbar
+@app.context_processor
+def inject_message_count():
+    if current_user.is_authenticated:
+        unread_count = UserMessage.query.filter_by(
+            recipient_id=current_user.id,
+            read=False
+        ).count()
+        return dict(unread_messages=unread_count)
+    return dict(unread_messages=0)
 
 if __name__ == '__main__':
     app.run(debug=True)

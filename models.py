@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -69,3 +70,23 @@ class AdminMessage(db.Model):
     
     # Relationship
     user = db.relationship('User', backref='admin_messages')
+
+class UserMessage(db.Model):
+    __tablename__ = 'user_message'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
+
+    sender = db.relationship('User', foreign_keys=[sender_id], backref=db.backref('sent_messages', lazy=True))
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref=db.backref('received_messages', lazy=True))
+
+    def __repr__(self):
+        return f'<UserMessage {self.id} from {self.sender_id} to {self.recipient_id}>'
+
+def init_db(app):
+    with app.app_context():
+        db.create_all()

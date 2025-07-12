@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Messages | Skill Swap{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Messages</h2>
+                <a href="{{ url_for('home') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Conversation List -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Conversations</h5>
+                </div>
+                <div class="card-body" style="height: calc(100vh - 200px); overflow-y: auto;">
+                    {% for conversation in conversations %}
+                    <a href="{% if conversation.conversation_id %}{{ url_for('messages', conversation_id=conversation.conversation_id) }}{% else %}{{ url_for('compose_message', recipient_id=conversation.other_user.id) }}{% endif %}" class="list-group-item list-group-item-action {% if conversation.unread %}bg-light{% endif %} py-3 mb-2">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ conversation.other_user.name }}</h6>
+                                <small class="text-muted">
+                                    {% if conversation.type == 'swap' %}
+                                        <i class="fas fa-exchange-alt me-1"></i>Swap Partner
+                                    {% elif conversation.last_message %}
+                                        {{ conversation.last_message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        Start new conversation
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% if conversation.unread %}
+                            <span class="badge bg-primary rounded-pill">{{ conversation.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                        <p class="text-muted">No conversations yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Content -->
+        <div class="col-md-8">
+            {% if selected_conversation %}
+            <div class="card h-100">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ selected_conversation.other_user.name }}</h5>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('profile', user_id=selected_conversation.other_user.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-user me-1"></i>View Profile
+                            </a>
+                            <a href="{{ url_for('compose_message', recipient_id=selected_conversation.other_user.id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-reply me-1"></i>Reply
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" style="height: calc(100vh - 250px); overflow-y: auto;">
+                    {% if selected_conversation.messages %}
+                        {% for message in selected_conversation.messages %}
+                        <div class="message {% if message.sender_id == current_user.id %}sent{% else %}received{% endif %} mb-3">
+                            <div class="message-content">
+                                <p class="mb-1">{{ message.content }}</p>
+                                <small class="text-muted">
+                                    {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No messages yet. Start a conversation!</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <form action="{{ url_for('send_message', recipient_id=selected_conversation.other_user.id) }}" method="POST">
+                        <div class="input-group">
+                            <textarea class="form-control" name="content" rows="2" placeholder="Type your message..." required></textarea>
+                            <button class="btn btn-primary" type="submit">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-comments fa-3x mb-3 text-muted"></i>
+                <p class="text-muted">Select a conversation to view messages</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .message {
+        width: 100%;
+    }
+
+    .message.sent {
+        text-align: right;
+    }
+
+    .message-content {
+        max-width: 70%;
+        display: inline-block;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .message.sent .message-content {
+        background-color: #e3f2fd;
+    }
+
+    .message.received .message-content {
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item-action:hover {
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item-action.bg-light {
+        background-color: #e9ecef !important;
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .card-body {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #66b3ff 100%);
+        color: white;
+    }
+
+    .card-header h5 {
+        color: white;
+    }
+
+    .card-header a {
+        color: white;
+        text-decoration: none;
+    }
+
+    .card-header a:hover {
+        color: #e3f2fd;
+    }
+</style>
+{% endblock %}
