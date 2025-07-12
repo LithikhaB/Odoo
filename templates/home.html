@@ -1,31 +1,105 @@
 {% extends 'base.html' %}
-{% block title %}Welcome | Skill Swap{% endblock %}
+{% block title %}Home{% endblock %}
 {% block content %}
-<div class="text-center mt-5">
-    <div class="d-flex justify-content-center mb-3">
-        <span style="display:inline-block;width:80px;height:80px;">
-            <svg width="80" height="80" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="18" cy="18" r="18" fill="url(#swapGradientHome)"/>
-                <path d="M12 18h12M24 18l-4-4M24 18l-4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M24 18H12M12 18l4-4M12 18l4 4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/>
-                <defs>
-                    <linearGradient id="swapGradientHome" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
-                        <stop stop-color="#7f5af0"/>
-                        <stop offset="1" stop-color="#2cb67d"/>
-                    </linearGradient>
-                </defs>
-            </svg>
-        </span>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Welcome to Skill Swap Platform</h2>
+                <p class="card-text mb-4">
+                    Connect with other users to exchange skills and knowledge.
+                    Find someone who can teach you what you want to learn!
+                </p>
+            </div>
+        </div>
     </div>
-    <h1 class="display-4 mb-3 fw-bold" style="background: linear-gradient(90deg,#7f5af0,#2cb67d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Welcome to Skill Swap!</h1>
-    {% if current_user.is_authenticated %}
-        <p class="lead">Hello, <b>{{ current_user.name }}</b>!</p>
-        <p>Start swapping skills, connect with others, and grow together.</p>
-        <a href="{{ url_for('browse') }}" class="btn btn-primary btn-lg">Browse Skills</a>
-    {% else %}
-        <p class="lead">Swap skills, learn, and share with people in your community.</p>
-        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">Get Started</a>
-        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
-    {% endif %}
 </div>
+
+{% if current_user.is_authenticated %}
+<div class="row mb-4">
+    <div class="col-12">
+        {% if messages %}
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Platform Messages</h5>
+            </div>
+            <div class="card-body">
+                {% for message in messages %}
+                <div class="alert alert-light border mb-2">
+                    <p class="mb-1">{{ message.message }}</p>
+                    <small class="text-muted">
+                        <i class="fas fa-user-tie me-1"></i>Admin &middot; 
+                        <i class="fas fa-clock me-1"></i>{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Your Skills</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="card-subtitle mb-2 text-muted">Skills you can offer:</h6>
+                        <p class="card-text">{{ current_user.skills_offered }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="card-subtitle mb-2 text-muted">Skills you want to learn:</h6>
+                        <p class="card-text">{{ current_user.skills_wanted }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('browse') }}" class="btn btn-primary me-md-2">
+                        <i class="fas fa-search me-2"></i>Browse Users
+                    </a>
+                    <a href="{{ url_for('profile') }}" class="btn btn-secondary">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Get Started</h5>
+            </div>
+            <div class="card-body">
+                <p class="lead mb-4">Join our skill swap community today!</p>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{{ url_for('register') }}" class="btn btn-primary me-md-2">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

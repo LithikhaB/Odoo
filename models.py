@@ -1,11 +1,13 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
     location = db.Column(db.String(150))
     photo = db.Column(db.String(300))
     skills_offered = db.Column(db.String(300))
@@ -21,24 +23,49 @@ class User(UserMixin, db.Model):
         # Deterministic color based on name
         return f'{abs(hash(self.name)) % 0xFFFFFF:06x}'
 
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f'<User {self.name}>'
+
 class SwapRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     to_user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     skill_offered = db.Column(db.String(150))
     skill_wanted = db.Column(db.String(150))
+    message = db.Column(db.String(500))  # Message from requester
     status = db.Column(db.String(20), default='pending')
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    
+    # Relationships
+    from_user = db.relationship('User', foreign_keys=[from_user_id])
+    to_user = db.relationship('User', foreign_keys=[to_user_id])
+    feedbacks = db.relationship('Feedback', backref='swap', lazy='dynamic')
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     swap_id = db.Column(db.Integer, db.ForeignKey('swap_request.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     rating = db.Column(db.Integer)
-    comment = db.Column(db.String(500))
+    review = db.Column(db.String(500))  # Changed from comment to review
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    
+    # Ensure a user can only give one feedback per swap
+    __table_args__ = (db.UniqueConstraint('swap_id', 'user_id', name='_swap_user_uc'),)
+    
+    # Relationships
+    user = db.relationship('User', backref='feedbacks')
 
 class AdminMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, default=None)  # Make nullable with default
     message = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    
+    # Relationship
+    user = db.relationship('User', backref='admin_messages')

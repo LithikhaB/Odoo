@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Monitor Swaps | Admin{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">Swap Requests</h2>
+                    <p class="text-muted mb-0">Manage and monitor swap requests</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>From User</th>
+                                    <th>To User</th>
+                                    <th>Skills</th>
+                                    <th>Status</th>
+                                    <th>Message</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for swap, from_user_name, to_user_name in swaps %}
+                                <tr>
+                                    <td>{{ from_user_name }}</td>
+                                    <td>{{ to_user_name }}</td>
+                                    <td>
+                                        <p class="mb-1">Offering: {{ swap.skill_offered }}</p>
+                                        <p class="mb-0">Wants: {{ swap.skill_wanted }}</p>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if swap.status == 'accepted' %}bg-success{% elif swap.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ swap.status.title() }}
+                                        </span>
+                                    </td>
+                                    <td>{{ swap.message }}</td>
+                                    <td>{{ swap.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if swap.status == 'pending' %}
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-success accept-swap" data-swap-id="{{ swap.id }}">
+                                                <i class="fas fa-check me-1"></i>Accept
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger reject-swap" data-swap-id="{{ swap.id }}">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add confirmation dialogs for admin actions
+function confirmAction(message, action) {
+    if (confirm(message)) {
+        action();
+    }
+}
+
+document.querySelectorAll('.accept-swap').forEach(button => {
+    button.addEventListener('click', function() {
+        confirmAction(
+            'Are you sure you want to accept this swap request?',
+            () => window.location.href = `/admin/approve_swap/${this.dataset.swapId}`
+        );
+    });
+});
+
+document.querySelectorAll('.reject-swap').forEach(button => {
+    button.addEventListener('click', function() {
+        confirmAction(
+            'Are you sure you want to reject this swap request?',
+            () => window.location.href = `/admin/reject_swap/${this.dataset.swapId}`
+        );
+    });
+});
+</script>
+{% endblock %}

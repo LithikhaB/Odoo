@@ -25,8 +25,15 @@
             </span>
           {% endif %}
           <div>
-            <b>{{ user.name }}</b>
-            <div class="text-muted small">{{ user.location or 'N/A' }}</div>
+            <h5 class="mb-1">{{ user.name }}</h5>
+            <div class="text-muted small">
+              {% if user_ratings[user.id] > 0 %}
+                Rating: {{ user_ratings[user.id] }}/5
+                <a href="{{ url_for('user_ratings', user_id=user.id) }}" class="text-muted ms-2">(View Reviews)</a>
+              {% else %}
+                No ratings yet
+              {% endif %}
+            </div>
           </div>
         </div>
         <div><span class="fw-semibold">Skills Offered:</span> {{ user.skills_offered }}</div>

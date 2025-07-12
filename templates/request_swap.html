@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Request Swap | Skill Swap{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Request Swap with {{ target_user.name }}</h2>
+    <form method="POST" class="mt-4">
+        <div class="mb-3">
+            <label for="skill_offered" class="form-label">Skill You're Offering</label>
+            <select class="form-select" id="skill_offered" name="skill_offered" required>
+                <option value="">Select a skill...</option>
+                {% for skill in current_user.skills_offered.split(',') if current_user.skills_offered %}
+                    <option value="{{ skill.strip() }}" {% if skill.strip() == skill_offered %}selected{% endif %}>
+                        {{ skill.strip() }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="skill_wanted" class="form-label">Skill You Want to Learn</label>
+            <select class="form-select" id="skill_wanted" name="skill_wanted" required>
+                <option value="">Select a skill...</option>
+                {% for skill in target_user.skills_offered.split(',') if target_user.skills_offered %}
+                    <option value="{{ skill.strip() }}" {% if skill.strip() == skill_wanted %}selected{% endif %}>
+                        {{ skill.strip() }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="message" class="form-label">Message (optional)</label>
+            <textarea class="form-control" id="message" name="message" rows="3" placeholder="Add a personal message..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send Request</button>
+        <a href="{{ url_for('browse') }}" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>
+{% endblock %}

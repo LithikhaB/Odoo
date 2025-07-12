@@ -1,0 +1,14 @@
+{% if messages %}
+<div class="alert alert-info" role="alert">
+    <h5 class="alert-heading">Platform Messages</h5>
+    <hr>
+    {% for message in messages %}
+    <div class="message-item">
+        <div class="message-content">
+            <p>{{ message.message }}</p>
+            <small class="text-muted">Sent by Admin on {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}

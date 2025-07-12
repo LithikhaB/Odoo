@@ -1,51 +1,58 @@
 {% extends 'base.html' %}
 {% block title %}Register | Skill Swap{% endblock %}
 {% block content %}
-<div class="row justify-content-center mt-5">
-  <div class="col-md-7 col-lg-6">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h3 class="card-title mb-4 text-center">Create Account</h3>
-        <form method="POST">
-          <div class="mb-3">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control" name="name" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" class="form-control" name="password" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Location (optional)</label>
-            <input type="text" class="form-control" name="location">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Profile Photo URL (optional)</label>
-            <input type="text" class="form-control" name="photo">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Skills Offered <small>(comma separated)</small></label>
-            <input type="text" class="form-control" name="skills_offered">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Skills Wanted <small>(comma separated)</small></label>
-            <input type="text" class="form-control" name="skills_wanted">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Availability</label>
-            <input type="text" class="form-control" name="availability">
-          </div>
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="is_public" id="is_public" checked>
-            <label class="form-check-label" for="is_public">Make profile public?</label>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Register</button>
-        </form>
-        <div class="mt-3 text-center">
-          <a href="{{ url_for('login') }}">Already have an account? Login</a>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Register</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('register') }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location">
+                        </div>
+                        <div class="mb-3">
+                            <label for="skills_offered" class="form-label">Skills Offered</label>
+                            <textarea class="form-control" id="skills_offered" name="skills_offered" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="skills_wanted" class="form-label">Skills Wanted</label>
+                            <textarea class="form-control" id="skills_wanted" name="skills_wanted" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="availability" class="form-label">Availability</label>
+                            <input type="text" class="form-control" id="availability" name="availability">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" checked>
+                                <label class="form-check-label" for="is_public">
+                                    Make profile public
+                                </label>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
 {% endblock %}

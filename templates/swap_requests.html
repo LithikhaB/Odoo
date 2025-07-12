@@ -29,7 +29,29 @@
               <td><span class="badge bg-{{ 'secondary' if req.status=='pending' else ('success' if req.status=='accepted' else ('danger' if req.status=='rejected' else 'warning')) }}">{{ req.status|capitalize }}</span></td>
               <td>
                 {% if req.status == 'pending' %}
-                  <a href="{{ url_for('delete_swap', swap_id=req.id) }}" class="btn btn-sm btn-outline-danger">Delete</a>
+                  <div class="mb-2">
+                    <a href="{{ url_for('delete_swap', swap_id=req.id) }}" class="btn btn-sm btn-outline-danger me-2">Delete</a>
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#message-{{ req.id }}" aria-expanded="false" aria-controls="message-{{ req.id }}">
+                      View Message
+                    </button>
+                  </div>
+                  <div class="collapse" id="message-{{ req.id }}">
+                    <div class="card card-body p-2 mt-2">
+                      <p class="mb-0">{{ req.message }}</p>
+                    </div>
+                  </div>
+                {% elif req.status == 'accepted' %}
+                  <div class="mb-2">
+                    <a href="{{ url_for('rate_user', swap_id=req.id) }}" class="btn btn-sm btn-outline-primary me-2">Rate User</a>
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#message-{{ req.id }}" aria-expanded="false" aria-controls="message-{{ req.id }}">
+                      View Message
+                    </button>
+                  </div>
+                  <div class="collapse" id="message-{{ req.id }}">
+                    <div class="card card-body p-2 mt-2">
+                      <p class="mb-0">{{ req.message }}</p>
+                    </div>
+                  </div>
                 {% endif %}
               </td>
             </tr>
@@ -66,8 +88,30 @@
               <td><span class="badge bg-{{ 'secondary' if req.status=='pending' else ('success' if req.status=='accepted' else ('danger' if req.status=='rejected' else 'warning')) }}">{{ req.status|capitalize }}</span></td>
               <td>
                 {% if req.status == 'pending' %}
-                  <a href="{{ url_for('accept_swap', swap_id=req.id) }}" class="btn btn-sm btn-success me-1">Accept</a>
-                  <a href="{{ url_for('reject_swap', swap_id=req.id) }}" class="btn btn-sm btn-danger">Reject</a>
+                  <div class="mb-2">
+                    <a href="{{ url_for('accept_swap', swap_id=req.id) }}" class="btn btn-sm btn-outline-success me-2">Accept</a>
+                    <a href="{{ url_for('reject_swap', swap_id=req.id) }}" class="btn btn-sm btn-outline-danger me-2">Reject</a>
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#message-{{ req.id }}" aria-expanded="false" aria-controls="message-{{ req.id }}">
+                      View Message
+                    </button>
+                  </div>
+                  <div class="collapse" id="message-{{ req.id }}">
+                    <div class="card card-body p-2 mt-2">
+                      <p class="mb-0">{{ req.message }}</p>
+                    </div>
+                  </div>
+                {% elif req.status == 'accepted' %}
+                  <div class="mb-2">
+                    <a href="{{ url_for('rate_user', swap_id=req.id) }}" class="btn btn-sm btn-outline-primary me-2">Rate User</a>
+                    <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#message-{{ req.id }}" aria-expanded="false" aria-controls="message-{{ req.id }}">
+                      View Message
+                    </button>
+                  </div>
+                  <div class="collapse" id="message-{{ req.id }}">
+                    <div class="card card-body p-2 mt-2">
+                      <p class="mb-0">{{ req.message }}</p>
+                    </div>
+                  </div>
                 {% endif %}
               </td>
             </tr>
